@@ -79,7 +79,7 @@ Sebelum mulai mengirim data, gw perlu mengetahui dulu kemampuan hardware yang di
 
 Hal pertama yang dicek adalah perangkat audio HDMI yang tersedia dan format audio yang bisa digunakan.
 
-## Laptop / PC A — Sender
+## Laptop / PC A (Sender)
 
 Di sisi sender, `aplay -l` digunakan untuk melihat daftar perangkat playback yang tersedia:
 
@@ -148,7 +148,7 @@ Perangkat HDMI ini mendukung:
 * 2 sampai 8 channel
 * sample rate dari `32000` sampai `192000 Hz`
 
-# Laptop B (Receiver)
+# Laptop / PC B (Receiver)
 
 Selanjutnya kita cek perangkat capture pada laptop penerima.
 
