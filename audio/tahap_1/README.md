@@ -115,7 +115,7 @@ Karena sebelumnya kita sudah menentukan mapping:
 
 maka Decoder perlu mengecek, dari setiap potongan audio, apakah sinyal tersebut lebih cocok dengan **1000 Hz** atau **2000 Hz**.
 
-Saya sudah membuat code-nya di file `2_decode_wave.py`.
+Saya sudah membuat code-nya di file [2_decode_wave.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_1/2_decode_wave.py)
 
 Bagian code yang akan kita highlight adalah:
 
