@@ -1,16 +1,12 @@
-# Tahap Pertama | Mengirim Pesan lewat HDMI
+# Tahap Pertama | Eksperimen Encoding dan Decoding Audio
 
-Di tahap pertama ini, kita mulai dari hal yang paling sederhana: **mencoba mengirim pesan melalui HDMI**.
+Di tahap pertama ini, kita mulai dari hal yang paling sederhana: **mencoba mengubah data menjadi sinyal audio, kemudian mengembalikannya lagi menjadi data.**
 
-Awalnya gw kepikiran satu pertanyaan:
-
-> **"Kalau HDMI bisa mengirim gambar dan suara, apakah kita bisa memanfaatkannya untuk mengirim data lain?"**
-
-Dari situ, gw coba mulai dari jalur audio HDMI.
+Untuk percobaan awal, kita belum menggunakan perangkat komunikasi apa pun. Kita hanya menggunakan **file WAV** sebagai media untuk menguji apakah proses encoding dan decoding menggunakan sinyal audio dapat bekerja.
 
 ## Ide Dasar
 
-Karena HDMI bisa membawa sinyal audio, kita bisa memanfaatkan audio tersebut sebagai media untuk mengirim data.
+Untuk merepresentasikan data menggunakan audio, kita membutuhkan suatu cara untuk mengubah bit menjadi sinyal yang bisa dibuat dan dianalisis kembali.
 
 Untuk percobaan pertama, gw menggunakan teknik yang sangat sederhana: **Frequency Shift Keying (FSK)**.
 
@@ -21,7 +17,7 @@ Konsepnya cukup gampang. Setiap bit direpresentasikan menggunakan frekuensi tert
 | `0` | 1000 Hz   |
 | `1` | 2000 Hz   |
 
-Jadi, misalnya data yang ingin dikirim adalah:
+Jadi, misalnya data yang ingin direpresentasikan adalah:
 
 ```text
 01101000
@@ -34,9 +30,9 @@ Maka setiap bit akan diubah menjadi frekuensi:
 2000 Hz -> 1000 Hz -> 1000 Hz -> 1000 Hz
 ```
 
-Di sisi pengirim, program akan membuat sinyal audio berdasarkan urutan frekuensi tersebut dan mengirimkannya melalui output audio HDMI.
+Di sisi encoder, program akan membuat sinyal audio berdasarkan urutan frekuensi tersebut dan menyimpannya ke dalam sebuah file `.wav`.
 
-Kemudian di sisi penerima, audio HDMI akan direkam dan dianalisis. Program akan mencari frekuensi yang sedang diterima, lalu menentukan apakah frekuensi tersebut mewakili `0` atau `1`.
+Kemudian di sisi decoder, file WAV tersebut akan dibaca dan dianalisis. Program akan mencari frekuensi yang paling cocok pada setiap bagian audio, kemudian menentukan apakah frekuensi tersebut merepresentasikan `0` atau `1`.
 
 Secara sederhana, alurnya seperti ini:
 
@@ -53,10 +49,10 @@ Mapping bit -> frekuensi
 1000 -> 2000 -> 2000 -> 1000 -> ...
   |
   v
-HDMI Audio
+WAV File
   |
   v
-Receiver
+Decoder
   |
   v
 Analisis frekuensi
@@ -69,173 +65,13 @@ Untuk sekarang, kita belum terlalu memikirkan masalah seperti **kecepatan transf
 
 Target tahap ini sederhana dulu:
 
-> **Apakah kita benar-benar bisa mengirim dan menerima bit melalui audio HDMI?**
+> **Apakah kita bisa mengubah bit menjadi sinyal audio, menyimpannya sebagai WAV, kemudian membaca kembali sinyal tersebut menjadi bit?**
 
-Kalau bagian dasar ini berhasil, barulah eksperimennya bisa dikembangkan lebih jauh.
-
-## Mengecek Kemampuan Audio HDMI
-
-Sebelum mulai mengirim data, gw perlu mengetahui dulu kemampuan hardware yang digunakan.
-
-Hal pertama yang dicek adalah perangkat audio HDMI yang tersedia dan format audio yang bisa digunakan.
-
-### Laptop / PC A (Sender)
-
-Di sisi sender, `aplay -l` digunakan untuk melihat daftar perangkat playback yang tersedia:
-
-```sh
-[laptop1@kevinadhaikal ~]$ aplay -l
-**** List of PLAYBACK Hardware Devices ****
-card 0: Generic [HD-Audio Generic], device 3: HDMI 0 [HDMI 0]
-Subdevices: 1/1
-Subdevice #0: subdevice #0
-card 0: Generic [HD-Audio Generic], device 7: HDMI 1 [MACROSILICON]
-Subdevices: 1/1
-Subdevice #0: subdevice #0
-card 1: Generic_1 [HD-Audio Generic], device 0: ALC257 Analog [ALC257 Analog]
-Subdevices: 1/1
-Subdevice #0: subdevice #0
-```
-
-Dari sini terlihat bahwa terdapat beberapa perangkat audio, termasuk output HDMI.
-
-Untuk eksperimen ini, perangkat yang digunakan adalah:
-
-```text
-hw:0,7
-```
-
-Kemudian kemampuan hardware-nya dicek menggunakan:
-
-```sh
-aplay -D hw:0,7 --dump-hw-params /dev/zero
-```
-
-Hasilnya:
-
-```text
-Playing raw data '/dev/zero' : Unsigned 8 bit, Rate 8000 Hz, Mono
-HW Params of device "hw:0,7":
---------------------
-ACCESS: MMAP_INTERLEAVED RW_INTERLEAVED
-FORMAT: S16_LE S32_LE
-SUBFORMAT: STD MSBITS_MAX
-SAMPLE_BITS: [16 32]
-FRAME_BITS: [32 256]
-CHANNELS: [2 8]
-RATE: [32000 192000]
-PERIOD_TIME: (20 16384000]
-PERIOD_SIZE: [4 524288]
-PERIOD_BYTES: [128 2097152]
-PERIODS: [2 32]
-BUFFER_TIME: (41 32768000]
-BUFFER_SIZE: [8 1048576]
-BUFFER_BYTES: [128 4194304]
-TICK_TIME: ALL
---------------------
-aplay: set_params:1393: Sample format non available
-Available formats:
-- S16_LE
-- S32_LE
-```
-
-Ada beberapa informasi menarik dari hasil tersebut.
-
-Perangkat HDMI ini mendukung:
-
-* `S16_LE`
-* `S32_LE`
-* 2 sampai 8 channel
-* sample rate dari `32000` sampai `192000 Hz`
-
-### Laptop / PC B (Receiver)
-
-Selanjutnya kita cek perangkat capture pada laptop penerima.
-
-Untuk melihat perangkat recording yang tersedia, digunakan:
-
-```sh
-[laptop2@kevinadhaikal ~]$ arecord -l
-**** List of CAPTURE Hardware Devices ****
-card 1: Generic_1 [HD-Audio Generic], device 0: ALC257 Analog [ALC257 Analog]
-Subdevices: 1/1
-Subdevice #0: subdevice #0
-card 2: acp [acp], device 0: DMIC capture dmic-hifi-0 []
-Subdevices: 1/1
-Subdevice #0: subdevice #0
-card 3: MS2109 [MS2109], device 0: USB Audio [USB Audio]
-Subdevices: 1/1
-Subdevice #0: subdevice #0
-```
-
-Pada laptop ini, audio HDMI yang masuk diterima melalui USB HDMI capture device berbasis `MS2109`.
-
-Device yang digunakan adalah:
-
-```text
-hw:3,0
-```
-
-Kemudian kemampuan capture device dicek menggunakan:
-
-```sh
-arecord -D hw:3,0 --dump-hw-params /dev/null
-```
-
-Hasilnya:
-
-```text
-Warning: Some sources (like microphones) may produce inaudible results
-         with 8-bit sampling. Use '-f' argument to increase resolution
-         e.g. '-f S16_LE'.
-HW Params of device "hw:3,0":
---------------------
-ACCESS: MMAP_INTERLEAVED
-FORMAT: S16_LE
-SUBFORMAT: STD MSBITS_MAX
-SAMPLE_BITS: 16
-FRAME_BITS: 32
-CHANNELS: 2
-RATE: 48000
-PERIOD_TIME: [1000 1000000]
-PERIOD_SIZE: [48 48000]
-PERIOD_BYTES: [192 192000]
-PERIODS: [2 1024]
-BUFFER_TIME: [2000 2000000]
-BUFFER_SIZE: [96 96000]
-BUFFER_BYTES: [384 384000]
-TICK_TIME: ALL
---------------------
-arecord: set_params:1393: Sample format non available
-Available formats:
-- S16_LE
-```
-
-Nah, kalau kita liat dari hasil tersebut, receiver hanya bisa
-
-```text
-Format       : S16_LE
-Sample rate  : 48000 Hz
-Channel      : 2 (stereo)
-```
-
-Jadi, karena Receiver hanya bisa menerima dengan hasil tersebut, Sender juga harus sepakat bahwa Sender mengirim dengan sesuai hasil Receiver tersebut.
-
----
-
-Tetapi, pengen coba dari yang gampang dulu. jadi kita sepakat dulu bahwa
-```text
-Format       : S16_LE
-Sample rate  : 48000 Hz
-Channel      : 1 (Mono)
-```
-Yes. Mono. kita ngelakuin satu channel dulu.
-
-Oke, langsung tanpa basa-basi, kita langsung eksekusi
+Kalau bagian dasar ini berhasil, barulah kita bisa membawa konsep tersebut ke tahap berikutnya.
 
 ## Membuat Encoder
 
-Seperti yang gw bilang, kita akan menggunakan **Frequency Shift Keying (FSK)**. dan saya sudah membuat code nya itu ada di [1_generate_wave.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_1/1_generate_wave.py) untuk melihat hasil generate bit "0" dan "1" jadi suara, dan per bit itu, saya buat 100ms per bit.
+Seperti yang gw bilang, kita akan menggunakan **Frequency Shift Keying (FSK)**. dan saya sudah membuat code nya itu ada di 1_generate_wave.py untuk melihat hasil generate bit "0" dan "1" jadi suara, dan per bit itu, saya buat 100ms per bit.
 
 setelah menjalankan code pythonnya, nanti akan memberikan file bernama `output.wav`. kita cek menggunakan aplikasi Audacity, dan ubah menjadi Spectogram. dan nanti hasilnya seperti gambar dibawah ini.
 
@@ -259,7 +95,10 @@ Maka audio tersebut merepresentasikan data biner:
 ```text
 01
 ```
+
 Jadi sebenarnya kita bukan mengubah audio menjadi biner secara langsung, tetapi kita menggunakan frekuensi tertentu sebagai representasi dari bit.
+
+Nah, sekarang kita kan ga mungkin untuk ngeliat Spectogram, dan kita menulis sendiri binernya, kan? nah, sekarang kita membuat Decoder nya.
 
 ## Membuat Decoder
 
@@ -274,7 +113,9 @@ Karena sebelumnya kita sudah menentukan mapping:
 | `0` | 1000 Hz   |
 | `1` | 2000 Hz   |
 
-maka Decoder perlu mengecek, dari setiap potongan audio, apakah sinyal tersebut lebih cocok dengan **1000 Hz** atau **2000 Hz**. Saya sudah membuat code-nya di file [2_decode_wave.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_1/2_decode_wave.py).
+maka Decoder perlu mengecek, dari setiap potongan audio, apakah sinyal tersebut lebih cocok dengan **1000 Hz** atau **2000 Hz**.
+
+Saya sudah membuat code-nya di file `2_decode_wave.py`.
 
 Bagian code yang akan kita highlight adalah:
 
@@ -348,7 +189,9 @@ else:
     decoded_bits += "1"
 ```
 
-Kalau `score_0` lebih besar, kita mendapatkan `0`. Kalau `score_1` lebih besar, kita mendapatkan `1`.
+Kalau `score_0` lebih besar, kita mendapatkan `0`.
+
+Kalau `score_1` lebih besar, kita mendapatkan `1`.
 
 Sekarang kita coba jalankan code Python-nya:
 
@@ -359,4 +202,38 @@ Decoded: 01
 
 Dan akhirnya, kita berhasil **mengembalikan sine wave yang ada di file `output.wav` menjadi bit `01`**.
 
+Jadi alurnya sekarang sudah lengkap:
+
+```text
+Bit
+ ↓
+Encoder
+ ↓
+Sine Wave
+ ↓
+output.wav
+ ↓
+Decoder
+ ↓
+Bit
+```
+
 Kita sudah berhasil membuat komunikasi data sederhana menggunakan **frekuensi audio sebagai representasi bit**.
+
+## Mengirim / Menerima Text
+
+Nah, kita sudah berhasil membuat Encoder dari sebuah bit, menjadi audio. dan kita juga sudah berhasil membuat Decoder dari sebuah audio ke bit. Sekarang, kita pengen membuat transfer dalam bentuk text.
+
+Untuk di sisi encoder nya, kita hanya perlu melakukan convert text menjadi sebuah biner, dan mengirimkannya ke decoder. dan disisi decoder hanya perlu mengumpulkan bitnya, dan di convert dari bit ke text.
+
+Saya juga udah buat file nya. 3_encode_text.py dan 4_decode_text.py. dan sekarang kita coba encode text "hello world", dan kita akan coba mendecode.
+
+```text
+[laptop1@kevinadhaikal tahap_1]$ python 3_encode_text.py 
+Masukkan text: hello world 
+file disimpan menjadi output.wav
+[laptop1@kevinadhaikal tahap_1]$ python 4_decode_text.py 
+decoded: hello world
+[laptop1@kevinadhaikal tahap_1]$ 
+```
+

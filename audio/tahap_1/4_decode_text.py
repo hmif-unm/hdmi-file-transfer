@@ -40,4 +40,10 @@ for start in range(0, len(audio), SAMPLES_PER_BIT):
     if score_0 > score_1: decoded_bits += "0"
     else: decoded_bits += "1"
 
-print("Decoded:", decoded_bits)
+decoded = ""
+
+for i in range(0, len(decoded_bits), 8):
+    byte = decoded_bits[i:i+8]
+    decoded += chr(int(byte, 2))
+
+print("decoded: " + decoded)
