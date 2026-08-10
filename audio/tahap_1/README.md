@@ -75,7 +75,7 @@ Seperti yang gw bilang, kita akan menggunakan **Frequency Shift Keying (FSK)**. 
 
 setelah menjalankan code pythonnya, nanti akan memberikan file bernama `output.wav`. kita cek menggunakan aplikasi Audacity, dan ubah menjadi Spectogram. dan nanti hasilnya seperti gambar dibawah ini.
 
-<img width="1092" height="565" alt="1_spectogram" src="https://github.com/hmif-unm/hdmi-file-transfer/blob/main/assets/audio/tahap_1/1_spectogram.png?raw=true" />
+<img alt="1_spectogram" src="https://github.com/hmif-unm/hdmi-file-transfer/blob/main/assets/audio/tahap_1/1_spectogram.png?raw=true" />
 
 nah, kalo lu bisa liat di gambar itu, disitu menghasilkan audio sepanjang 200ms (0.2 detik). di 100ms awal itu menghasilkan 1000hz, dan 100ms selanjutnya menghasilkan 2000hz.
 
@@ -226,7 +226,7 @@ Nah, kita sudah berhasil membuat Encoder dari sebuah bit, menjadi audio. dan kit
 
 Untuk di sisi encoder nya, kita hanya perlu melakukan convert text menjadi sebuah biner, dan mengirimkannya ke decoder. dan disisi decoder hanya perlu mengumpulkan bitnya, dan di convert dari bit ke text.
 
-Saya juga udah buat file nya. 3_encode_text.py dan 4_decode_text.py. dan sekarang kita coba encode text "hello world", dan kita akan coba mendecode.
+Saya juga udah buat file nya. [3_encode_text.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_1/3_encode_text.py) dan [4_decode_text.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_1/4_decode_text.py). dan sekarang kita coba encode text "hello world", dan kita akan coba mendecode.
 
 ```text
 [laptop1@kevinadhaikal tahap_1]$ python 3_encode_text.py 
@@ -236,4 +236,72 @@ file disimpan menjadi output.wav
 decoded: hello world
 [laptop1@kevinadhaikal tahap_1]$ 
 ```
+Dan hasil Spectogramnya seperti ini
 
+<img alt="2_hello_world_spectogram" src="https://github.com/hmif-unm/hdmi-file-transfer/blob/main/assets/audio/tahap_1/2_hello_world_spectogram.png?raw=true" />
+
+## Kesimpulan
+
+Dari percobaan ini, kita sudah berhasil membuat alur sederhana untuk mengubah data menjadi sinyal audio dan mengembalikannya lagi menjadi data.
+
+Mulai dari:
+
+```text
+Bit
+ ↓
+FSK
+ ↓
+Sinyal Audio
+ ↓
+WAV
+ ↓
+Decoder
+ ↓
+Bit
+```
+
+Kemudian kita kembangkan lagi supaya bisa mengirim **text**, sehingga alurnya menjadi:
+
+```text
+Text
+ ↓
+Binary
+ ↓
+FSK
+ ↓
+Audio
+ ↓
+WAV
+ ↓
+Decoder
+ ↓
+Binary
+ ↓
+Text
+```
+
+Dan percobaan tersebut berhasil. Text `hello world` yang dimasukkan ke encoder berhasil dibaca kembali oleh decoder sebagai `hello world`.
+
+Jadi, dari tahap ini kita sudah membuktikan bahwa **data bisa direpresentasikan menggunakan frekuensi audio**, kemudian sinyal tersebut bisa dianalisis kembali untuk mendapatkan data aslinya.
+
+Tapi ada satu masalah: Sampai tahap ini, kita masih menggunakan **file WAV sebagai media perantara**.
+
+Artinya, prosesnya masih seperti:
+
+```text
+Encoder
+   |
+   v
+output.wav
+   |
+   v
+Decoder
+```
+
+Belum ada proses pengiriman data secara langsung.
+
+Nah, dari sini muncul pertanyaan berikutnya:
+
+> **"Kalau audio tersebut tidak disimpan sebagai file, tapi langsung dikirim melalui suatu koneksi, apakah datanya masih bisa diterima dan di-decode dengan benar?"**
+
+Dan di sinilah kita masuk ke [tahap berikutnya](https://github.com/hmif-unm/hdmi-file-transfer/tree/main/audio/tahap_2).
