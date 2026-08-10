@@ -230,4 +230,118 @@ Channel      : 1 (Mono)
 ```
 Yes. Mono. kita ngelakuin satu channel dulu.
 
-Oke, langsung tanpa basa-basi, kita langsung eksekusi
+Oke, langsung tanpa basa-basi, kita langsung eksekusi!
+
+## Membuat Sender
+
+sekarang kita coba mengirim data tersebut melalui jalur audio HDMI.
+
+Untuk itu, kita membuat program **Sender** yang bertugas mengubah data menjadi sinyal audio, kemudian mengirimkannya melalui perangkat HDMI.
+
+Data yang dikirim masih menggunakan konsep yang sama seperti tahap sebelumnya. Setiap bit direpresentasikan menggunakan frekuensi yang berbeda:
+
+* `0` → 1000 Hz
+* `1` → 2000 Hz
+
+Jadi, tugas Sender kurang lebih adalah:
+
+```text
+Data
+ ↓
+Bit
+ ↓
+Frekuensi
+ ↓
+Sinyal Audio
+ ↓
+HDMI
+```
+
+Untuk codenya, sudah Saya buatin di file 1_sender_mono.py
+
+Program Sender inilah yang nantinya menjalankan proses tersebut secara langsung, bukan lagi menyimpan hasilnya ke file WAV seperti pada tahap pertama.
+
+## Membuat Receiver
+
+Setelah Sender selesai dibuat, kita membutuhkan program yang melakukan kebalikannya, yaitu **Receiver**.
+
+Receiver membaca audio yang masuk dari HDMI, kemudian mencoba menentukan frekuensi yang sedang diterima. Dari frekuensi tersebut, Receiver dapat mengetahui bit yang dikirim oleh Sender.
+
+Karena kita menggunakan dua frekuensi, prosesnya sederhana:
+
+```text
+1000 Hz → 0
+2000 Hz → 1
+```
+
+Secara sederhana prosesnya seperti ini:
+
+```text
+HDMI Audio
+    ↓
+Baca sample audio
+    ↓
+Analisis frekuensi
+    ↓
+1000 Hz / 2000 Hz
+    ↓
+0 / 1
+    ↓
+Cari Preamble
+    ↓
+Baca Data
+    ↓
+Bit → Byte → Teks
+```
+
+Untuk mendeteksi frekuensi, kita menggunakan korelasi terhadap gelombang sinus dan cosinus pada frekuensi yang sudah ditentukan.
+
+Untuk codenya, sudah Saya buatin di file 2_receiver_mono.py
+
+## Percobaan Mengirim dan Menerima Text
+
+Oke, karena kita sudah membuat Sender dan Receiver, sekarang mari kita coba!
+
+- Percobaan Pertama
+  - PC / Laptop A
+    ```text
+    [laptop1@kevinadhaikal tahap_2]$ python 1_sender_mono.py
+    Masukkan pesan: hello world 
+    Mengirim...
+    Selesai dikirim.
+    ```
+
+  - PC / Laptop B
+    ```text
+    [laptop2@kevinadhaikal tahap_2]$ python 2_receiver_mono.py 
+    menunggu data...
+    mendapatkan bits: 0110100001100101011011000110110001101111001000000111011101101111011100100110110001100100
+    isi message: 'hello world'
+    ```
+  
+  Wah, ternyata kita berhasil transfer file lewat Audio HDMI! Mari kita coba lagi
+
+- Percobaan Kedua
+  - PC / Laptop A
+    ```text
+    [laptop1@kevinadhaikal tahap_2]$ python 1_sender_mono.py
+    Masukkan pesan: hello world 
+    Mengirim...
+    Selesai dikirim.
+    ```
+
+  - PC / Laptop B
+    ```text
+    [laptop2@kevinadhaikal tahap_2]$ python 2_receiver_mono.py 
+    menunggu data...
+    mendapatkan bits: 00110100001100101011011000110110001101111001000000111011101101111011100100110110001100100
+    isi message: '42¶67\x90;·¹62'
+    ```
+  
+  Loh...? kok begini?
+
+Percobaan pertama, memanglah berhasl. tapi saat mencoba kedua kalinya, tiba tiba data nya menjadi acak acakan. Mengapa bisa kayak gini ya?
+
+## Mencari Solusi
+
+Hmmmmm...
