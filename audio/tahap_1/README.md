@@ -73,13 +73,13 @@ Target tahap ini sederhana dulu:
 
 Kalau bagian dasar ini berhasil, barulah eksperimennya bisa dikembangkan lebih jauh.
 
-# Mengecek Kemampuan Audio HDMI
+## Mengecek Kemampuan Audio HDMI
 
 Sebelum mulai mengirim data, gw perlu mengetahui dulu kemampuan hardware yang digunakan.
 
 Hal pertama yang dicek adalah perangkat audio HDMI yang tersedia dan format audio yang bisa digunakan.
 
-## Laptop / PC A (Sender)
+### Laptop / PC A (Sender)
 
 Di sisi sender, `aplay -l` digunakan untuk melihat daftar perangkat playback yang tersedia:
 
@@ -148,7 +148,7 @@ Perangkat HDMI ini mendukung:
 * 2 sampai 8 channel
 * sample rate dari `32000` sampai `192000 Hz`
 
-# Laptop / PC B (Receiver)
+### Laptop / PC B (Receiver)
 
 Selanjutnya kita cek perangkat capture pada laptop penerima.
 
@@ -220,3 +220,43 @@ Channel      : 2 (stereo)
 ```
 
 Jadi, karena Receiver hanya bisa menerima dengan hasil tersebut, Sender juga harus sepakat bahwa Sender mengirim dengan sesuai hasil Receiver tersebut.
+
+---
+
+Tetapi, pengen coba dari yang gampang dulu. jadi kita sepakat dulu bahwa
+```text
+Format       : S16_LE
+Sample rate  : 48000 Hz
+Channel      : 1 (Mono)
+```
+Yes. Mono. kita ngelakuin satu channel dulu.
+
+Oke, langsung tanpa basa-basi, kita langsung eksekusi
+
+## Eksperimen Pertama
+
+Seperti yang gw bilang, kita akan menggunakan **Frequency Shift Keying (FSK)**. dan saya sudah membuat code nya itu ada di 1_generate_wave.py untuk melihat hasil generate bit "0" dan "1" jadi suara, dan per bit itu, saya buat 100ms per bit.
+
+setelah menjalankan code pythonnya, nanti akan memberikan file bernama `output.wav`. kita cek menggunakan aplikasi Audacity, dan ubah menjadi Spectogram. dan nanti hasilnya seperti gambar dibawah ini.
+
+Gambar nya
+
+nah, kalo lu bisa liat di gambar itu, disitu menghasilkan audio sepanjang 200ms (0.2 detik). di 100ms awal itu menghasilkan 1000hz, dan 100ms selanjutnya menghasilkan 2000hz.
+
+Nah, sebelumnya kita sudah menentukan mapping antara bit dan frekuensi seperti ini:
+
+| Bit | Frekuensi |
+| --- | --------- |
+| `0` | 1000 Hz   |
+| `1` | 2000 Hz   |
+
+Jadi, dari frekuensi yang kita hasilkan:
+
+1000 Hz → 0
+2000 Hz → 1
+
+Maka audio tersebut merepresentasikan data biner:
+```text
+01
+```
+Jadi sebenarnya kita bukan mengubah audio menjadi biner secara langsung, tetapi kita menggunakan frekuensi tertentu sebagai representasi dari bit.
