@@ -233,7 +233,7 @@ Yes. Mono. kita ngelakuin satu channel dulu.
 
 Oke, langsung tanpa basa-basi, kita langsung eksekusi
 
-## Eksperimen Pertama
+## Membuat Encoder
 
 Seperti yang gw bilang, kita akan menggunakan **Frequency Shift Keying (FSK)**. dan saya sudah membuat code nya itu ada di [1_generate_wave.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_1/1_generate_wave.py) untuk melihat hasil generate bit "0" dan "1" jadi suara, dan per bit itu, saya buat 100ms per bit.
 
@@ -260,3 +260,103 @@ Maka audio tersebut merepresentasikan data biner:
 01
 ```
 Jadi sebenarnya kita bukan mengubah audio menjadi biner secara langsung, tetapi kita menggunakan frekuensi tertentu sebagai representasi dari bit.
+
+## Membuat Decoder
+
+Karena kita sudah membuat Encoder dan menghasilkan file bernama `output.wav`, sekarang kita akan membuat **Decoder**.
+
+Kalau di Encoder kita mengubah bit menjadi sine wave dengan frekuensi tertentu, maka di Decoder kita melakukan kebalikannya: membaca file `.wav`, menganalisis sinyalnya, lalu menentukan bit berdasarkan frekuensi yang paling cocok.
+
+Karena sebelumnya kita sudah menentukan mapping:
+
+| Bit | Frekuensi |
+| --- | --------- |
+| `0` | 1000 Hz   |
+| `1` | 2000 Hz   |
+
+maka Decoder perlu mengecek, dari setiap potongan audio, apakah sinyal tersebut lebih cocok dengan **1000 Hz** atau **2000 Hz**. Saya sudah membuat code-nya di file [2_decode_wave.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_1/2_decode_wave.py).
+
+Bagian code yang akan kita highlight adalah:
+
+```py
+...
+wave_0 = np.sin(2 * np.pi * FREQ_0 * t)
+wave_1 = np.sin(2 * np.pi * FREQ_1 * t)
+
+score_0 = np.sum(samples * wave_0)
+score_1 = np.sum(samples * wave_1)
+
+if score_0 > score_1:
+    decoded_bits += "0"
+else:
+    decoded_bits += "1"
+```
+
+Nah, bagian `wave_0` dan `wave_1` digunakan untuk **membuat sine wave referensi** berdasarkan frekuensi yang sudah kita sepakati sebelumnya.
+
+Jadi:
+
+```py
+wave_0 = np.sin(2 * np.pi * FREQ_0 * t)
+```
+
+akan membuat sine wave dengan frekuensi **1000 Hz**, sedangkan:
+
+```py
+wave_1 = np.sin(2 * np.pi * FREQ_1 * t)
+```
+
+akan membuat sine wave dengan frekuensi **2000 Hz**.
+
+Setelah itu, kita ingin mengetahui sinyal yang ada di `samples` lebih cocok dengan sine wave 1000 Hz atau 2000 Hz.
+
+Untuk melakukan itu, kita menghitung `score`:
+
+```py
+score_0 = np.sum(samples * wave_0)
+score_1 = np.sum(samples * wave_1)
+```
+
+Secara sederhana, kita mengalikan sample audio yang diterima dengan sine wave referensi, lalu menjumlahkan hasilnya menggunakan `np.sum()`.
+
+Semakin besar nilai `score`, berarti sinyal yang diterima semakin **cocok** dengan frekuensi tersebut.
+
+Jadi kalau hasilnya misalnya:
+
+```text
+score_0 = 150000000
+score_1 = 2000000
+```
+
+berarti sinyalnya jauh lebih cocok dengan **1000 Hz**, sehingga kita anggap sebagai bit `0`.
+
+Sebaliknya, kalau:
+
+```text
+score_0 = 1000000
+score_1 = 140000000
+```
+
+berarti sinyalnya lebih cocok dengan **2000 Hz**, sehingga kita anggap sebagai bit `1`.
+
+Makanya kita punya kondisi:
+
+```py
+if score_0 > score_1:
+    decoded_bits += "0"
+else:
+    decoded_bits += "1"
+```
+
+Kalau `score_0` lebih besar, kita mendapatkan `0`. Kalau `score_1` lebih besar, kita mendapatkan `1`.
+
+Sekarang kita coba jalankan code Python-nya:
+
+```text
+[laptop1@kevinadhaikal tahap_1]$ python 2_decode_wave.py
+Decoded: 01
+```
+
+Dan akhirnya, kita berhasil **mengembalikan sine wave yang ada di file `output.wav` menjadi bit `01`**.
+
+Kita sudah berhasil membuat komunikasi data sederhana menggunakan **frekuensi audio sebagai representasi bit**.
