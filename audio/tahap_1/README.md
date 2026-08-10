@@ -235,11 +235,11 @@ Oke, langsung tanpa basa-basi, kita langsung eksekusi
 
 ## Eksperimen Pertama
 
-Seperti yang gw bilang, kita akan menggunakan **Frequency Shift Keying (FSK)**. dan saya sudah membuat code nya itu ada di 1_generate_wave.py untuk melihat hasil generate bit "0" dan "1" jadi suara, dan per bit itu, saya buat 100ms per bit.
+Seperti yang gw bilang, kita akan menggunakan **Frequency Shift Keying (FSK)**. dan saya sudah membuat code nya itu ada di [1_generate_wave.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_1/1_generate_wave.py) untuk melihat hasil generate bit "0" dan "1" jadi suara, dan per bit itu, saya buat 100ms per bit.
 
 setelah menjalankan code pythonnya, nanti akan memberikan file bernama `output.wav`. kita cek menggunakan aplikasi Audacity, dan ubah menjadi Spectogram. dan nanti hasilnya seperti gambar dibawah ini.
 
-Gambar nya
+<img width="1092" height="565" alt="1_spectogram" src="https://github.com/hmif-unm/hdmi-file-transfer/blob/main/assets/audio/tahap_1/1_spectogram.png?raw=true" />
 
 nah, kalo lu bisa liat di gambar itu, disitu menghasilkan audio sepanjang 200ms (0.2 detik). di 100ms awal itu menghasilkan 1000hz, dan 100ms selanjutnya menghasilkan 2000hz.
 
