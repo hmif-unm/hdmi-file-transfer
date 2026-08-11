@@ -1,7 +1,7 @@
 import alsaaudio
 import numpy as np
 
-DEVICE = "hw:1,0"
+DEVICE = "hw:3,0"
 
 RATE = 48000
 CHANNELS = 1
@@ -9,6 +9,8 @@ PERIODSIZE = 480
 
 FREQ_0 = 1000
 FREQ_1 = 2000
+
+PREAMBLE = "1010101010101010"
 
 t = np.arange(PERIODSIZE) / RATE
 
@@ -37,9 +39,6 @@ def detect_bit(chunk):
     total = power_0 + power_1
     if total == 0: return None
 
-    confidence = abs(power_0 - power_1) / total
-
-    if confidence < 0.2: return None
     if power_0 > power_1: return "0"
     return "1"
 
@@ -56,8 +55,9 @@ pcm = alsaaudio.PCM(
 print("menunggu data...")
 
 buffer = np.array([], dtype=np.int16)
+
+is_found_preamble = False
 received_bits = ""
-is_process_audio = False
 
 try:
     while True:
@@ -73,24 +73,28 @@ try:
 
             bit = detect_bit(chunk)
 
-            if bit is None:
-                if not is_process_audio: continue
+            if not is_found_preamble:
+                if bit is None: continue
+                received_bits += bit
+                if PREAMBLE in received_bits:
+                    print("dapet preamble!")
+                    is_found_preamble = True
+                    received_bits = ""
+                continue
+            else:
+                if bit is None:
+                    print("mendapatkan bits:", received_bits)
 
-                print("mendapatkan bits:", received_bits)
-                message = ""
+                    message = ""
+                    for i in range(0, len(received_bits) - 7, 8):
+                        byte_bits = received_bits[i:i + 8]
+                        value = int(byte_bits, 2)
+                        message += chr(value)
 
-                for i in range(0, len(received_bits) - 7, 8):
-                    byte_bits = received_bits[i:i + 8]
-                    value = int(byte_bits, 2)
-                    message += chr(value)
-
-                print("isi message:", repr(message))
-                received_bits = ""
-                pcm.close()
-                exit(0)
-            else: is_process_audio = True
-
-            received_bits += bit
+                    print("isi message:", repr(message))
+                    exit(0)
+                    continue
+                received_bits += bit
 
 except KeyboardInterrupt:
     print("\nStopping...")

@@ -340,8 +340,107 @@ Oke, karena kita sudah membuat Sender dan Receiver, sekarang mari kita coba!
   
   Loh...? kok begini?
 
-Percobaan pertama, memanglah berhasl. tapi saat mencoba kedua kalinya, tiba tiba data nya menjadi acak acakan. Mengapa bisa kayak gini ya?
+Percobaan pertama, memanglah berhasil. tapi saat mencoba kedua kalinya, tiba tiba data nya menjadi acak acakan. Mengapa bisa kayak gini ya?
 
-## Mencari Solusi
+## Mencari Solusi dan Memperbaiki
 
-Hmmmmm...
+Hmmmmm... Mari kita lihat bit hasil pertama dan kedua
+
+- Hasil Pertama
+  ```
+  0110100001100101011011000110110001101111001000000111011101101111011100100110110001100100
+  ```
+
+- Hasil Kedua
+  ```
+  00110100001100101011011000110110001101111001000000111011101101111011100100110110001100100
+  ```
+
+Kalo kita teliti... Hasil kedua ini malah menambahkan `0` di bagian awalnya. Hmmmmm... mengapa itu bisa terjadi?
+
+Ternyata, ini masalah timing dan sinkronisasi. Jadi gini:
+
+- Disisi Sender:
+  Setiap bit dikirim dalam 480 sample
+  ```text
+  |--------480--------|--------480--------|--------480--------|
+        BIT 0               BIT 1               BIT 2
+  ```
+
+- Disisi Receiver:
+  Pembacaan audio belum tentu dimulai tepat di awal sebuah bit
+  ```text
+  |--------480--------|--------480--------|--------480--------|
+       ↑
+     offset
+  ```
+
+Nah, jadi Receiver bisa saja mulai membaca beberapa sample lebih awal atau lebih lambat dari posisi sebenarnya. Karena Receiver selalu membagi data menjadi **480 sample per bit**, offset kecil ini akan membuat seluruh pembagian bit ikut bergeser.
+
+Misalnya, Sender mengirim:
+
+```text
+BIT 0 | BIT 1 | BIT 2 | BIT 3 | ...
+```
+
+tetapi Receiver mulai membacanya sedikit lebih awal:
+
+```text
+  offset
+    ↓
+...| BIT 0 | BIT 1 | BIT 2 | BIT 3 | ...
+```
+
+Receiver akhirnya menganggap potongan audio yang bukan merupakan awal `BIT 0` sebagai awal data. Inilah yang menyebabkan munculnya `0` tambahan di bagian awal dan membuat seluruh bit setelahnya ikut bergeser.
+
+Jadi, masalahnya bukan pada encoding atau correlation yang kita gunakan. Masalahnya adalah Receiver belum mengetahui secara pasti dimana posisi awal setiap bit berada.
+
+Nah, untuk ngatasinnya... kita bisa melakukan mengirim preamble terlebih dahulu. jadi, preamble ini bisa dibilang kayak verifikasi dulu. setelah preamble, baru kirim data nya. nanti data nya berbentuk seperti ini
+
+```text
+PREAMBLE + DATA
+```
+
+dan di receiver nya juga harus mengecek preamble dulu. jika preamble nya valid, baru menerima datanya.
+
+dan untuk preamblenya, saya buat seperti ini `1010101010101010`. ya. 2 byte (16 bit).  saya sudah revisi code nya di file 3_sender_mono.py dan 4_receiver_mono.py.
+
+Sekarang, mari kita coba
+
+- Percobaan Pertama
+  - PC / Laptop A
+    ```
+    [laptop1@kevinadhaikal tahap_2]$ python 3_sender_mono.py 
+    Masukkan pesan: hello world 
+    Mengirim...
+    Selesai dikirim.
+    ```
+  = PC / Laptop B
+    ```
+    [laptop2@kevinadhaikal tahap_2]$ python 4_receiver_mono.py 
+    menunggu data...
+    dapet preamble!
+    mendapatkan bits: 01101000011001010110110001101100011011110010000001110111011011110111001001101100011001000
+    isi message: 'hello world'
+    ```
+
+Oke... untuk percobaan pertama ini berhasil. sekarang kita melakukan percobaan kedua
+
+- Percobaan Kedua
+  - PC / Laptop A
+    ```
+    [laptop1@kevinadhaikal tahap_2]$ python 3_sender_mono.py 
+    Masukkan pesan: hello world 
+    Mengirim...
+    Selesai dikirim.
+    ```
+  - PC / Laptop B
+    ```
+    [laptop2@kevinadhaikal tahap_2]$ python 4_receiver_mono.py 
+    menunggu data...
+    dapet preamble!
+    mendapatkan bits: 01101000011001010110110001101100011011110010000001110111011011110111001001101100011001000
+    isi message: 'hello world'
+    ```
+
+AKHIR NYA BERHASIL JUGA!
