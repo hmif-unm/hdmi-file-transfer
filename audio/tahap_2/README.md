@@ -1,4 +1,4 @@
-# Tahap Kedua | Mengirim Pesan lewat HDMI
+# Tahap Kedua | Mengirim dan Menerima Pesan
 
 Di tahap kedua ini, gw mulai mencoba mengirim pesan melalui HDMI.
 
@@ -488,4 +488,4 @@ Oke... untuk percobaan pertama ini berhasil. sekarang kita melakukan percobaan k
     ```
 ## Kesimpulan
 
-Jadi, kita sudah membuat Encoder dan Decoder Audio, dan transfer pesan lewat HDMI, Sekarang kita membuat agar transfer pesan nya lebih cepat. Yuk, kita masuk ke [Tahap Berikutnya](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_2/6_receiver_mono.py)
+Jadi, kita sudah membuat Encoder dan Decoder Audio, dan transfer pesan lewat HDMI, Sekarang kita membuat agar bisa transfer file. Yuk, kita masuk ke [Tahap Berikutnya](https://github.com/hmif-unm/hdmi-file-transfer/tree/main/audio/tahap_3).
