@@ -415,7 +415,7 @@ Sekarang, mari kita coba
     Mengirim...
     Selesai dikirim.
     ```
-  - PC / Laptop B
+  = PC / Laptop B
     ```
     [laptop2@kevinadhaikal tahap_2]$ python 4_receiver_mono.py 
     menunggu data...
@@ -443,4 +443,46 @@ Oke... untuk percobaan pertama ini berhasil. sekarang kita melakukan percobaan k
     isi message: 'hello world'
     ```
 
-AKHIR NYA BERHASIL JUGA!
+YES! Akhirnya berhasil juga.
+
+Saya juga menambahkan frekuensi untuk ready, dan READY frequency ini saya buat menghasilkan 3khz, agar tersinkron lebih baik dan benar.
+
+saya sudah revisi code nya di file 5_sender_mono.py dan 6_receiver_mono.py.
+
+Sekarang, mari kita coba lagi.
+
+- Percobaan Pertama
+  - PC / Laptop A
+    ```
+    [laptop1@kevinadhaikal tahap_2]$ python 5_sender_mono.py 
+    Masukkan pesan: hello world 
+    Mengirim READY frequency...
+    Selesai dikirim.
+    ```
+  = PC / Laptop B
+    ```
+    [laptop2@kevinadhaikal tahap_2]$ python 6_receiver_mono.py 
+    Menunggu READY...
+    Preamble diterima!
+    mendapatkan bits: 0110100001100101011011000110110001101111001000000111011101101111011100100110110001100100
+    isi message: 'hello world'
+    ```
+
+Oke... untuk percobaan pertama ini berhasil. sekarang kita melakukan percobaan kedua
+
+- Percobaan Kedua
+  - PC / Laptop A
+    ```
+    [laptop1@kevinadhaikal tahap_2]$ python 5_sender_mono.py 
+    Masukkan pesan: hello world 
+    Mengirim READY frequency...
+    Selesai dikirim.
+    ```
+  - PC / Laptop B
+    ```
+    [laptop2@kevinadhaikal tahap_2]$ python 6_receiver_mono.py 
+    Menunggu READY...
+    Preamble diterima!
+    mendapatkan bits: 0110100001100101011011000110110001101111001000000111011101101111011100100110110001100100
+    isi message: 'hello world'
+    ```
