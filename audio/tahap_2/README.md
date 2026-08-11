@@ -415,7 +415,7 @@ Sekarang, mari kita coba
     Mengirim...
     Selesai dikirim.
     ```
-  = PC / Laptop B
+  - PC / Laptop B
     ```
     [laptop2@kevinadhaikal tahap_2]$ python 4_receiver_mono.py 
     menunggu data...
