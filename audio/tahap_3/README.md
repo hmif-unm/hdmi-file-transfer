@@ -21,7 +21,7 @@ Bagian yang perlu dibuat:
 - Membaca file
 - CRC Hash
 
-untuk file code nya, sudah saya buat di 1_sender_mono.py
+untuk file code nya, sudah saya buat di [1_sender_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_3/1_sender_mono.py)
 
 ---
 
@@ -117,7 +117,7 @@ Bagian yang perlu dibuat:
 * Menulis file
 * Validasi CRC32 Hash
 
-untuk file code nya, sudah saya buat di 2_receiver_mono.py
+untuk file code nya, sudah saya buat di [2_receiver_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_3/2_receiver_mono.py)
 
 ---
 
