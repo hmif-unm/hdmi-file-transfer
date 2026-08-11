@@ -217,4 +217,42 @@ dd if=/dev/urandom of=256b.bin bs=128 count=2 status=progress
   [LOG] File berhasil di simpan!
   ```
 
-Wah, ternyata berhasil!
+Wah, ternyata berhasil! Tetapi... hanya transfer file 256 byte aja kok lama banget ya? hmmmmm...
+
+Jika kita hitung-hitung...
+
+```
+preamble = 16 bit (2 byte)
+header = 96 bit (12 byte)
+data = 2048 bit (256 byte)
+
+16 + 96 + 2048 = 2160 bits
+2160 * 0.01 = 21.6 detik
+```
+
+Wah... 21.6 detik!? cuma 256 byte doang!? lama banget.
+
+## Kesimpulan
+
+Pada tahap ketiga ini, kita sudah berhasil mengembangkan sistem dari yang sebelumnya hanya dapat mengirim pesan menjadi **transfer file melalui HDMI Audio**.
+
+File dikirim dalam bentuk data binary menggunakan teknik **Frequency Shift Keying (FSK)**, dengan pemetaan:
+
+| Bit | Frekuensi |
+| --- | --------- |
+| `0` | 1000 Hz   |
+| `1` | 2000 Hz   |
+
+Sebelum data file dikirim, Sender mengirimkan **preamble** untuk sinkronisasi, kemudian dilanjutkan dengan **header** yang berisi ukuran file dan CRC32. Setelah itu, isi file dikirim sebagai binary data.
+
+Pada sisi Receiver, header digunakan untuk mengetahui ukuran file yang harus diterima. Setelah seluruh data diterima, Receiver menghitung kembali CRC32 dan membandingkannya dengan CRC32 yang dikirim oleh Sender.
+
+Pada percobaan pertama, sistem berhasil mentransfer file random berukuran **256 bytes** dari satu komputer ke komputer lainnya melalui HDMI Audio. File yang diterima memiliki ukuran yang sesuai dan nilai CRC32 yang sama dengan file asli.
+
+Namun, dari percobaan tersebut juga terlihat bahwa sistem masih memiliki **kecepatan transfer yang sangat rendah**. Dengan `BIT_TIME = 0.01` detik, satu bit membutuhkan waktu 10 ms. Untuk mengirim 256 bytes saja, total waktu teoritisnya mencapai sekitar **21,6 detik**, belum termasuk waktu tambahan dari proses sinkronisasi dan pemrosesan.
+
+Artinya, sistem yang dibuat pada tahap ini sudah berhasil membuktikan bahwa **data file dapat ditransfer melalui HDMI Audio**, tetapi performanya masih jauh dari optimal.
+
+Hal ini menjadi dasar untuk tahap berikutnya, yaitu melakukan **optimasi kecepatan transfer**, misalnya dengan memperkecil waktu per bit, menggunakan teknik encoding yang lebih efisien, meningkatkan jumlah bit yang dapat dikirim dalam satu simbol, atau menggunakan teknik modulasi yang lebih kompleks.
+
+Yuk, kita lanjut ke [Tahap Selanjutnya](https://github.com/hmif-unm/hdmi-file-transfer/tree/main/audio/tahap_4).
