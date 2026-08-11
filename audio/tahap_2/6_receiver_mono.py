@@ -70,11 +70,11 @@ pcm = alsaaudio.PCM(
     periodsize=PERIODSIZE
 )
 
-print("Menunggu READY...")
+print("menunggu preamble...")
 
-state = "WAIT_PREAMBLE"
 buffer = np.array([], dtype=np.int16)
 received_bits = ""
+is_preamble_found = False
 
 try:
     while True:
@@ -88,25 +88,18 @@ try:
             chunk = buffer[:PERIODSIZE]
             buffer = buffer[PERIODSIZE:]
 
-            if state == "WAIT_READY":
-                if detect_ready(chunk):
-                    print("READY frequency diterima!")
-                    state = "WAIT_PREAMBLE"
-                    received_bits = ""
-                continue
-            if state == "WAIT_PREAMBLE":
+            if not is_preamble_found:
                 bit = detect_bit(chunk)
                 if bit is None: continue
 
                 received_bits += bit
 
                 if received_bits.find(PREAMBLE) != -1:
-                    print("Preamble diterima!")
-                    state = "RECEIVE_DATA"
+                    print("preamble diterima!")
                     received_bits = ""
+                    is_preamble_found = True
                 continue
-
-            if state == "RECEIVE_DATA":
+            else:
                 bit = detect_bit(chunk)
                 if bit is None:
                     print("mendapatkan bits:", received_bits)

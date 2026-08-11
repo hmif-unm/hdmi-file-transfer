@@ -1,4 +1,4 @@
-# Tahap Kedua | Mengirim dan Menerima Pesan
+# Tahap Kedua | Mengirim Pesan lewat HDMI
 
 Di tahap kedua ini, gw mulai mencoba mengirim pesan melalui HDMI.
 
@@ -257,7 +257,7 @@ Sinyal Audio
 HDMI
 ```
 
-Untuk codenya, sudah Saya buatin di file [1_sender_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_2/1_sender_mono.py)
+Untuk codenya, sudah Saya buatin di file 1_sender_mono.py
 
 Program Sender inilah yang nantinya menjalankan proses tersebut secara langsung, bukan lagi menyimpan hasilnya ke file WAV seperti pada tahap pertama.
 
@@ -296,7 +296,7 @@ Bit → Byte → Teks
 
 Untuk mendeteksi frekuensi, kita menggunakan korelasi terhadap gelombang sinus dan cosinus pada frekuensi yang sudah ditentukan.
 
-Untuk codenya, sudah Saya buatin di file [2_receiver_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_2/2_receiver_mono.py)
+Untuk codenya, sudah Saya buatin di file 2_receiver_mono.py
 
 ## Percobaan Mengirim dan Menerima Text
 
@@ -403,7 +403,7 @@ PREAMBLE + DATA
 
 dan di receiver nya juga harus mengecek preamble dulu. jika preamble nya valid, baru menerima datanya.
 
-dan untuk preamblenya, saya buat seperti ini `1010101010101010`. ya. 2 byte (16 bit).  saya sudah revisi code nya di file [3_sender_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_2/3_sender_mono.py) dan [4_receiver_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_2/4_receiver_mono.py).
+dan untuk preamblenya, saya buat seperti ini `1010101010101010`. ya. 2 byte (16 bit).  saya sudah revisi code nya di file 3_sender_mono.py dan 4_receiver_mono.py.
 
 Sekarang, mari kita coba
 
@@ -415,7 +415,7 @@ Sekarang, mari kita coba
     Mengirim...
     Selesai dikirim.
     ```
-  - PC / Laptop B
+  = PC / Laptop B
     ```
     [laptop2@kevinadhaikal tahap_2]$ python 4_receiver_mono.py 
     menunggu data...
@@ -445,9 +445,9 @@ Oke... untuk percobaan pertama ini berhasil. sekarang kita melakukan percobaan k
 
 YES! Akhirnya berhasil juga.
 
-Saya juga menambahkan frekuensi untuk ready, dan READY frequency ini saya buat menghasilkan 3khz, agar tersinkron lebih baik dan benar.
+Saya juga menambahkan frekuensi untuk READY. jadi, READY frequency ini saya buat menghasilkan 3khz, kenapa saya membuat ini? biar tersinkron lebih baik dan benar.
 
-saya sudah revisi code nya di file [5_sender_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_2/5_sender_mono.py) dan [6_receiver_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_2/6_receiver_mono.py).
+saya sudah revisi code nya di file 5_sender_mono.py dan 6_receiver_mono.py.
 
 Sekarang, mari kita coba lagi.
 
@@ -456,13 +456,13 @@ Sekarang, mari kita coba lagi.
     ```
     [laptop1@kevinadhaikal tahap_2]$ python 5_sender_mono.py 
     Masukkan pesan: hello world 
-    Mengirim READY frequency...
+    Mengirim READY frekuensi agar tersinkron...
     Selesai dikirim.
     ```
-  - PC / Laptop B
+  = PC / Laptop B
     ```
     [laptop2@kevinadhaikal tahap_2]$ python 6_receiver_mono.py 
-    Menunggu READY...
+    menunggu preamble...
     Preamble diterima!
     mendapatkan bits: 0110100001100101011011000110110001101111001000000111011101101111011100100110110001100100
     isi message: 'hello world'
@@ -475,17 +475,18 @@ Oke... untuk percobaan pertama ini berhasil. sekarang kita melakukan percobaan k
     ```
     [laptop1@kevinadhaikal tahap_2]$ python 5_sender_mono.py 
     Masukkan pesan: hello world 
-    Mengirim READY frequency...
+    Mengirim READY frekuensi agar tersinkron...
     Selesai dikirim.
     ```
   - PC / Laptop B
     ```
     [laptop2@kevinadhaikal tahap_2]$ python 6_receiver_mono.py 
-    Menunggu READY...
+    menunggu preamble...
     Preamble diterima!
     mendapatkan bits: 0110100001100101011011000110110001101111001000000111011101101111011100100110110001100100
     isi message: 'hello world'
     ```
+
 ## Kesimpulan
 
-Jadi, kita sudah membuat Encoder dan Decoder Audio, dan transfer pesan lewat HDMI, Sekarang kita membuat agar bisa transfer file. Yuk, kita masuk ke [Tahap Berikutnya](https://github.com/hmif-unm/hdmi-file-transfer/tree/main/audio/tahap_3).
+Jadi, kita sudah membuat Encoder dan Decoder Audio, dan transfer pesan lewat HDMI, Sekarang kita membuat agar transfer pesan nya lebih cepat. Yuk, kita masuk ke Tahap Berikutnya

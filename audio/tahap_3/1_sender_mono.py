@@ -1,6 +1,7 @@
 import numpy as np
 import alsaaudio
 import sys
+import zlib
 
 FREQ_0 = 1000
 FREQ_1 = 2000
@@ -13,7 +14,7 @@ CHANNELS = 1
 FORMAT = alsaaudio.PCM_FORMAT_S16_LE
 PREAMBLE = "1010101010101010"
 SAMPLES_PER_BIT = int(RATE * BIT_TIME)
-FILE_BUFFER = 0
+FILE_BUFFER = ""
 
 DEIVCE_OUTPUT = "hw:0,7"
 
@@ -40,6 +41,17 @@ def send_to_audio(pcm, buffer):
         chunk = buffer[i:i + SAMPLES_PER_BIT]
         pcm_out.write(chunk.tobytes())
 
+def make_header(file_data):
+    file_size = len(file_data)
+    crc32_hash = zlib.crc32(file_data)
+
+    header = (
+        file_size.to_bytes(8, "big") +
+        crc32_hash.to_bytes(4, "big")
+    )
+
+    return header
+
 if (len(sys.argv) < 3):
     print("Argument: " + sys.argv[0] + " <name file> <output audio id>")
 else:
@@ -58,12 +70,12 @@ else:
 
     silence = np.zeros(int(RATE * 0.1))
     ready = tone(READY_FREQ, 0.5)
-    audio = modulate(PREAMBLE + encode_buffer(FILE_BUFFER))
+    audio = modulate(PREAMBLE + encode_buffer(make_header(FILE_BUFFER)) + encode_buffer(FILE_BUFFER))
     audio = np.concatenate([ready, audio, silence])
     audio_int16 = (audio * 32767).astype(np.int16)
 
-    print("Mengirim READY frekuensi agar tersinkron...")
+    print("[LOG] Mengirim READY frekuensi agar tersinkron...")
     send_to_audio(pcm_out, audio_int16)
-    print("Selesai dikirim.")
+    print("[LOG] Selesai dikirim.")
 
     pcm_out.close()

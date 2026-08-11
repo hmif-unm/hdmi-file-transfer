@@ -55,7 +55,7 @@ audio = modulate(PREAMBLE + encode(message))
 audio = np.concatenate([ready, audio, silence])
 audio_int16 = (audio * 32767).astype(np.int16)
 
-print("Mengirim READY frequency...")
+print("Mengirim READY frekuensi agar tersinkron...")
 send_to_audio(pcm_out, audio_int16)
 print("Selesai dikirim.")
 

@@ -1,6 +1,7 @@
 import alsaaudio
 import numpy as np
 import sys
+import zlib
 
 RATE = 48000
 CHANNELS = 1
@@ -59,6 +60,12 @@ def detect_bit(chunk):
     if power_0 > power_1: return "0"
     return "1"
 
+def read_header(buffer):
+    file_size = int.from_bytes(buffer[0:8], "big")
+    crc32_hash = int.from_bytes(buffer[8:12], "big")
+
+    return file_size, crc32_hash
+
 if (len(sys.argv) < 3):
     print("Argument: " + sys.argv[0] + " <save name file> <input audio id>")
 else:
@@ -76,7 +83,7 @@ else:
     received_bits = ""
     is_preamble_found = False
 
-    print("menunggu preamble...")
+    print("[LOG] Menunggu sender...")
 
     try:
         while True:
@@ -97,23 +104,45 @@ else:
                     received_bits += bit
 
                     if received_bits.find(PREAMBLE) != -1:
-                        print("preamble diterima!")
+                        print("[LOG] Sender ditemukan! sedang diproses...")
                         is_preamble_found = True
                         received_bits = ""
                     continue
                 else:
                     bit = detect_bit(chunk)
                     if bit is None:
-                        print("berhasil menerima semua buffer file! menyimpan...")
+                        print("[LOG] Berhasil menerima semua buffer file! mengecek file...")
                         saved_buffer = bytearray()
 
-                        for i in range(0, len(received_bits) - 7, 8):
-                            byte_bits = received_bits[i:i + 8]
-                            saved_buffer.append(int(byte_bits, 2))
+                        for i in range(0, len(received_bits) - 7, 8): saved_buffer.append(int(received_bits[i:i + 8], 2))
 
-                        with open(sys.argv[1], "wb") as f: f.write(saved_buffer)
+                        file_size, crc32_hash = read_header(saved_buffer)
+                        saved_buffer = saved_buffer[12:]
 
-                        print("file berhasil di simpan!")
+                        if file_size != len(saved_buffer):
+                            print(
+                                f"[ERROR] Panjang file tidak sesuai! "
+                                f"Mendapat {len(saved_buffer)} bytes, "
+                                f"seharusnya {file_size} bytes"
+                            )
+                            exit(0)
+
+                        print("[LOG] Panjang file sesuai: " + str(file_size) + " bytes")
+                        
+                        if zlib.crc32(saved_buffer) != crc32_hash:
+                            print(
+                                f"[ERROR] CRC32 tidak sesuai! "
+                                f"Mendapat {hex(zlib.crc32(saved_buffer))}, "
+                                f"seharusnya {hex(crc32_hash)}"
+                            )
+                            exit(0)
+
+                        print("[LOG] CRC32 Sesuai: " + hex(crc32_hash))
+                        
+                        with open(sys.argv[1], "wb") as f:
+                            f.write(saved_buffer)
+                        print("[LOG] File berhasil di simpan!")
+
                         exit(0)
                         break
 
