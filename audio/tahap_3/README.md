@@ -41,10 +41,10 @@ untuk file code nya, sudah saya buat di [1_sender_mono.py](https://github.com/hm
     Saya akan mendesain header nya seperti ini:
 
     ```text
-    +------------------------+
-    |  FILE_SIZE  |  CRC32   | 
-    |   8 bytes   | 4 bytes  | 
-    +------------------------+
+    +------------------+------------------------+----------------+
+    | MAGIC            | FILE_SIZE              | CRC32          |
+    | HDMItA (6 bytes) | 8 bytes                | 4 bytes        |
+    +------------------+------------------------+----------------+
     ```
 
     Receiver akan membaca bagian header terlebih dahulu. Setelah header berhasil dibaca, receiver bisa mengetahui berapa banyak data yang harus diterima dan bagaimana data tersebut harus disimpan.
@@ -125,18 +125,19 @@ untuk file code nya, sudah saya buat di [2_receiver_mono.py](https://github.com/
 
     Receiver akan membaca header yang dikirim oleh sender sebelum menerima isi file.
 
-    Header memiliki ukuran **12 bytes** dengan format:
+    Header memiliki ukuran **18 bytes** dengan format:
 
     ```text
-    +------------------------+----------------+
-    | FILE_SIZE              | CRC32          |
-    | 8 bytes                | 4 bytes        |
-    +------------------------+----------------+
+    +------------------+------------------------+----------------+
+    | MAGIC            | FILE_SIZE              | CRC32          |
+    | HDMItA (6 bytes) | 8 bytes                | 4 bytes        |
+    +------------------+------------------------+----------------+
     ```
 
     Kemudian header dipisahkan menjadi:
 
     ```text
+    MAGIC     = HDMItA (6 bytes)
     FILE_SIZE = 8 bytes
     CRC32     = 4 bytes
     ```
@@ -223,14 +224,14 @@ Jika kita hitung-hitung...
 
 ```
 preamble = 16 bit (2 byte)
-header = 96 bit (12 byte)
+header = 144 bit (18 byte)
 data = 2048 bit (256 byte)
 
-16 + 96 + 2048 = 2160 bits
-2160 * 0.01 = 21.6 detik
+16 + 144 + 2048 = 2208 bits
+2208 * 0.01 = 22.08 detik
 ```
 
-Wah... 21.6 detik!? cuma 256 byte doang!? lama banget.
+Wah... 22.08 detik!? cuma 256 byte doang!? lama banget.
 
 ## Kesimpulan
 
@@ -249,7 +250,7 @@ Pada sisi Receiver, header digunakan untuk mengetahui ukuran file yang harus dit
 
 Pada percobaan pertama, sistem berhasil mentransfer file random berukuran **256 bytes** dari satu komputer ke komputer lainnya melalui HDMI Audio. File yang diterima memiliki ukuran yang sesuai dan nilai CRC32 yang sama dengan file asli.
 
-Namun, dari percobaan tersebut juga terlihat bahwa sistem masih memiliki **kecepatan transfer yang sangat rendah**. Dengan `BIT_TIME = 0.01` detik, satu bit membutuhkan waktu 10 ms. Untuk mengirim 256 bytes saja, total waktu teoritisnya mencapai sekitar **21,6 detik**, belum termasuk waktu tambahan dari proses sinkronisasi dan pemrosesan.
+Namun, dari percobaan tersebut juga terlihat bahwa sistem masih memiliki **kecepatan transfer yang sangat rendah**. Dengan `BIT_TIME = 0.01` detik, satu bit membutuhkan waktu 10 ms. Untuk mengirim 256 bytes saja, total waktu teoritisnya mencapai sekitar **22.08 detik**, belum termasuk waktu tambahan dari proses sinkronisasi dan pemrosesan.
 
 Artinya, sistem yang dibuat pada tahap ini sudah berhasil membuktikan bahwa **data file dapat ditransfer melalui HDMI Audio**, tetapi performanya masih jauh dari optimal.
 

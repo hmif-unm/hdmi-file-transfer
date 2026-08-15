@@ -13,8 +13,6 @@ READY_FREQ = 3000
 
 PREAMBLE = "1010101010101010"
 
-DEVICE_INPUT = 'hw:2,0'
-
 t = np.arange(PERIODSIZE) / RATE
 
 sin_ready = np.sin(2 * np.pi * READY_FREQ * t)
@@ -23,20 +21,6 @@ sin_0 = np.sin(2 * np.pi * FREQ_0 * t)
 cos_0 = np.cos(2 * np.pi * FREQ_0 * t)
 sin_1 = np.sin(2 * np.pi * FREQ_1 * t)
 cos_1 = np.cos(2 * np.pi * FREQ_1 * t)
-
-def detect_ready(chunk):
-    chunk = chunk.astype(np.float64)
-    chunk -= np.mean(chunk)
-
-    rms = np.sqrt(np.mean(chunk ** 2))
-
-    if rms == 0: return False
-
-    power_ready = correlation_power(chunk, sin_ready, cos_ready)
-    power_0 = correlation_power(chunk, sin_0, cos_0)
-    power_1 = correlation_power(chunk, sin_1, cos_1)
-
-    return power_ready > power_0 and power_ready > power_1
 
 def correlation_power(chunk, sin_wave, cos_wave):
     I = np.sum(chunk * cos_wave)
@@ -61,10 +45,11 @@ def detect_bit(chunk):
     return "1"
 
 def read_header(buffer):
-    file_size = int.from_bytes(buffer[0:8], "big")
-    crc32_hash = int.from_bytes(buffer[8:12], "big")
+    magic_header = buffer[0:6]
+    file_size = int.from_bytes(buffer[6:14], "big")
+    crc32_hash = int.from_bytes(buffer[14:18], "big")
 
-    return file_size, crc32_hash
+    return magic_header, file_size, crc32_hash
 
 if (len(sys.argv) < 3):
     print("Argument: " + sys.argv[0] + " <save name file> <input audio id>")
@@ -100,7 +85,6 @@ else:
                 if not is_preamble_found:
                     bit = detect_bit(chunk)
                     if bit is None: continue
-
                     received_bits += bit
 
                     if received_bits.find(PREAMBLE) != -1:
@@ -115,9 +99,15 @@ else:
                         saved_buffer = bytearray()
 
                         for i in range(0, len(received_bits) - 7, 8): saved_buffer.append(int(received_bits[i:i + 8], 2))
+                        
+                        magic_header, file_size, crc32_hash = read_header(saved_buffer)
+                        saved_buffer = saved_buffer[18:]
 
-                        file_size, crc32_hash = read_header(saved_buffer)
-                        saved_buffer = saved_buffer[12:]
+                        if magic_header != b"HDMItA":
+                            print("[ERROR] Magic Header tidak sesuai!")
+                            exit(0)
+
+                        print("[LOG] Magic header sesuai!")
 
                         if file_size != len(saved_buffer):
                             print(
@@ -139,6 +129,8 @@ else:
 
                         print("[LOG] CRC32 Sesuai: " + hex(crc32_hash))
                         
+                        
+
                         with open(sys.argv[1], "wb") as f:
                             f.write(saved_buffer)
                         print("[LOG] File berhasil di simpan!")

@@ -445,7 +445,7 @@ Oke... untuk percobaan pertama ini berhasil. sekarang kita melakukan percobaan k
 
 YES! Akhirnya berhasil juga.
 
-Saya juga menambahkan frekuensi untuk READY. jadi, READY frequency ini saya buat menghasilkan 3khz, kenapa saya membuat ini? biar tersinkron lebih baik dan benar.
+Saya juga menambahkan frekuensi untuk READY. jadi, READY frequency ini saya buat menghasilkan 3khz, kenapa saya membuat ini? jadi, agar audio sebelum mau transfer itu, audio nya itu bener bener bersih, dan juga biar tersinkron lebih baik dan benar.
 
 saya sudah revisi code nya di file [5_sender_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_2/5_sender_mono.py) dan [6_receiver_mono.py](https://github.com/hmif-unm/hdmi-file-transfer/blob/main/audio/tahap_2/6_receiver_mono.py).
 
